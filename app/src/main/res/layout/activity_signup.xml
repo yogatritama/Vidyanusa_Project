@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:background="@color/colorPrimary"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/image_user"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="15dp"
+        android:src="@drawable/logoprofilewhite"
+        android:scaleType="centerCrop" />
+
+
+    <LinearLayout
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="12dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp">
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:id="@+id/etemail"
+            android:inputType="textEmailAddress"
+            android:hint="E-mail"
+            android:textColor="@color/white"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:id="@+id/etusername"
+            android:inputType="textCapWords|textPersonName"
+            android:hint="Username"
+            android:textColor="@color/white"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:id="@+id/etnamalengkap"
+            android:inputType="textCapWords|textPersonName"
+            android:hint="Nama Lengkap"
+            android:textColor="@color/white"/>
+
+        <Spinner
+            android:id="@+id/spjenkel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:background="@color/colorPrimary"
+            android:hint="Jenis Kelamin"
+            android:popupBackground="@color/colorPrimary"/>
+
+        <!-- Fake TextView to use to set in an error state to allow an error to be shown for the TextView -->
+        <android.widget.TextView
+            android:id="@+id/tvInvisibleError"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_alignRight="@+id/spjenkel"
+            android:layout_alignBottom="@+id/spjenkel"
+            android:layout_marginTop="0dp"
+            android:paddingTop="0dp"
+            android:paddingRight="50dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:inputType="textPassword"
+            android:id="@+id/etpassword"
+            android:hint="Sandi"
+            android:textColor="@color/white"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:inputType="textPassword"
+            android:id="@+id/etcfmpassword"
+            android:hint="Konfirmasi Sandi"
+            android:textColor="@color/white"/>
+
+        <EditText
+            android:id="@+id/sekolah"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Sekolah"
+            android:inputType="text"
+            android:paddingTop="6dp" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Daftar"
+            android:id="@+id/btnregitrasi"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="@color/colorPrimaryDark"
+            android:padding="12dp"/>
+
+        <TextView android:id="@+id/link_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sudah punya akun? Login"
+            android:gravity="center"
+            android:textSize="16dip"/>
+
+    </LinearLayout>
+
+
+
+
+</LinearLayout>

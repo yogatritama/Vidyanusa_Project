@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_pengaturandasar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/green"
+            android:drawableLeft="@drawable/ic_settingsdasar_white_24dp"
+            android:onClick="onClickPengaturan"
+            android:padding="20dp"
+            android:text="Pengaturan Dasar" />
+
+        <Button
+            android:id="@+id/btn_portofolio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/green"
+            android:drawableLeft="@drawable/ic_format_list_bulleted_white_24dp"
+            android:onClick="onClickPortofolio"
+            android:padding="20dp"
+            android:text="Portofolio" />
+
+
+    </LinearLayout>
+
+
+</ScrollView>

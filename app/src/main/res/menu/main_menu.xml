@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/action_settings"
+        android:icon="@drawable/ic_access_time_white_24dp"
+        android:title="presensi"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/action_exit"
+        android:icon="@drawable/ic_exit_to_app_white_24dp"
+        android:title="exit"
+        app:showAsAction="always"/>
+
+</menu>

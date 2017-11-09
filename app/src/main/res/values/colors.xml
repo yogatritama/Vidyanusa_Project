@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#125688</color>
+    <color name="colorPrimaryLight">#3498db</color>
+    <color name="colorPrimaryDark">#2980b9</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="backgroundTab">#ecf0f1</color>
+    <color name="tabIndicators">#3498db</color>
+    <color name="honeybell">#fcbd6d</color>
+    <color name="turquoise">#79cfce</color>
+    <color name="smoke">#798788</color>
+    <color name="green">#7bb88c</color>
+    <color name="aspen_white">#f7f7dd</color>
+    <color name="puple">#b5aab0</color>
+    <color name="soft_mocha">#d1caae</color>
+    <color name="pale_blue">#d4e7eb</color>
+    <color name="pale_green">#e0e3d2</color>
+    <color name="white">#ffffff</color>
+</resources>

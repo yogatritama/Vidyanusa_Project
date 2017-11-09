@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.vidyanusa.MateriActivity">
+
+    <Button
+        android:id="@+id/btn_kelas7"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kelas 7"
+        android:background="@color/green"
+        android:textColor="@color/aspen_white"
+        android:padding="20dp"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/btn_kelas8"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kelas 8"
+        android:background="@color/honeybell"
+        android:textColor="@color/aspen_white"
+        android:padding="20dp"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/btn_kelas9"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kelas 9"
+        android:background="@color/turquoise"
+        android:textColor="@color/aspen_white"
+        android:padding="20dp"
+        android:layout_weight="1"/>
+
+</LinearLayout>
