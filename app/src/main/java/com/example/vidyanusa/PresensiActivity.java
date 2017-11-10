@@ -83,8 +83,8 @@ public class PresensiActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.portal);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setContentView(R.layout.presensi);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 //    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 //        View v =inflater.inflate(R.layout.activity_presensi,container,false);
 
@@ -266,8 +266,8 @@ public class PresensiActivity extends AppCompatActivity {
         history.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Intent intent = new Intent(getApplicationContext(), PresensiActivity.class);
-                //startActivity(intent);
+                Intent intent = new Intent(getApplicationContext(), RekapPresensiActivity.class);
+                startActivity(intent);
                 //finish();
                 //overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
             }

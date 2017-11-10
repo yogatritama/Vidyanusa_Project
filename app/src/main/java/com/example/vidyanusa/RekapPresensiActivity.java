@@ -1,16 +1,22 @@
 package com.example.vidyanusa;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 //import com.mikepenz.aboutlibraries.Libs;
 //import com.mikepenz.aboutlibraries.LibsBuilder;
@@ -29,8 +35,21 @@ import android.widget.TextView;
 //import com.vidyanusa.siswa.model.interfaces.IDrawerItem;
 //import com.vidyanusa.siswa.model.interfaces.IProfile;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class RekapPresensiActivity extends AppCompatActivity {
@@ -45,15 +64,22 @@ public class RekapPresensiActivity extends AppCompatActivity {
     //jam_boleh_pulang
     private TextView ket;
 
+    private String usernameString;
+    private String access_token;
+    private String pengguna;
+
+    private TableLayout table;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_sample_actionbar);
         setContentView(R.layout.activity_rekap_presensi);
-        // Handle Toolbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        usernameString = pref.getString("username", null);
+        access_token = pref.getString("access_token", null);
+        pengguna = pref.getString("id_pengguna", null);
 
         username = (TextView) findViewById(R.id.textView1);
         bulan = (Spinner) findViewById(R.id.spinner1);
@@ -102,8 +128,114 @@ public class RekapPresensiActivity extends AppCompatActivity {
 
         tgl = (TextView) findViewById(R.id.textView4);
         jam_masuk = (TextView) findViewById(R.id.textView5);
-        lokasi = (TextView) findViewById(R.id.textView6);
+        //lokasi = (TextView) findViewById(R.id.textView6);
         ket = (TextView) findViewById(R.id.textView7);
+
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.URL_GET_ABSENSI_BY_USERNAME,
+            new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    //              progressDialog.dismiss();
+                    try {
+                        JSONObject obj = new JSONObject(response);
+                        if(obj.getBoolean("success")){
+                            JSONArray arrData = new JSONArray(obj.getString("data"));
+                            JSONObject objData;
+
+                            table = (TableLayout) findViewById(R.id.tableLayout1);
+
+                            String[] temp1;
+                            String[] temp2;
+                            String tanggal = "";
+                            String jam_masuk;
+
+                            for(int num = 0; num < arrData.length(); num++) {
+                                objData = arrData.getJSONObject(num);
+                                temp1 = objData.getString("created_at").split("T");
+                                temp2 = temp1[0].split("-");
+                                if(tanggal.equals(temp2[2] + "-" + temp2[1] + "-" +  temp2[0])) {
+                                    continue;
+                                }
+                                tanggal = temp2[2] + "-" + temp2[1] + "-" + temp2[0];
+
+                                TextView text1 = new TextView(RekapPresensiActivity.this);
+                                text1.setLayoutParams(new TableRow.LayoutParams(
+                                        TableRow.LayoutParams.WRAP_CONTENT,
+                                        TableRow.LayoutParams.WRAP_CONTENT));
+                                text1.setTextSize(16);
+                                text1.setPadding(10, 10, 10, 10);
+                                text1.setGravity(Gravity.CENTER);
+                                text1.setText(tanggal);
+
+                                TextView text2 = new TextView(RekapPresensiActivity.this);
+                                text2.setLayoutParams(new TableRow.LayoutParams(
+                                        TableRow.LayoutParams.WRAP_CONTENT,
+                                        TableRow.LayoutParams.WRAP_CONTENT));
+                                text2.setTextSize(16);
+                                text2.setPadding(10, 10, 10, 10);
+                                text2.setGravity(Gravity.CENTER);
+                                temp2 = temp1[1].split("\\.");
+                                jam_masuk = temp2[0];
+                                text2.setText(jam_masuk);
+
+                                TextView text3 = new TextView(RekapPresensiActivity.this);
+                                text3.setLayoutParams(new TableRow.LayoutParams(
+                                        TableRow.LayoutParams.WRAP_CONTENT,
+                                        TableRow.LayoutParams.WRAP_CONTENT));
+                                text3.setTextSize(16);
+                                text3.setPadding(10, 10, 10, 10);
+                                text3.setGravity(Gravity.CENTER);
+                                text3.setText(objData.getString("keterangan"));
+
+                                TableRow table1 = new TableRow(RekapPresensiActivity.this);
+                                table1.setLayoutParams(new TableRow.LayoutParams(
+                                        TableRow.LayoutParams.MATCH_PARENT,
+                                        TableRow.LayoutParams.WRAP_CONTENT));
+                                table1.setPadding(getDP(10), getDP(10), getDP(10), getDP(10));
+                                table1.setGravity(Gravity.CENTER);
+                                setOnClick(table1, objData.getJSONObject("lokasi").getString("latitude") + " - " + objData.getJSONObject("lokasi").getString("longitude"));
+                                table1.addView(text1);
+                                table1.addView(text2);
+                                table1.addView(text3);
+
+                                table.addView(table1);
+                            }
+                        }
+                        else{
+                            JSONObject objData = obj.getJSONObject("data");
+                            Toast.makeText(getApplicationContext(),
+                                    objData.getString("message"),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }
+                    catch (JSONException e){
+                        e.printStackTrace();
+                    }
+
+                }
+            },
+
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(getApplicationContext(),
+                            error.toString(),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        ){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String,String> params = new HashMap<>();
+                params.put("access_token",access_token);
+                params.put("pengguna",pengguna);
+
+                return params;
+            }
+        };
+
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy( 50000, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
 
 //        final IProfile profile = new ProfileDrawerItem().withName("Mike Penz").withEmail("mikepenz@gmail.com").withIcon("https://avatars3.githubusercontent.com/u/1476232?v=3&s=460").withIdentifier(100);
 //
@@ -262,6 +394,19 @@ public class RekapPresensiActivity extends AppCompatActivity {
 //        }
 //    }
 
+    private int getDP(int num) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, num, getResources()
+                        .getDisplayMetrics());
+    }
 
+    private void setOnClick(final View v, final String str){
+        v.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View vv) {
+                Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
 }

@@ -252,7 +252,7 @@ public class PortalActivity extends AppCompatActivity {
             latitude = gps.getLatitude();
             longitude = gps.getLongitude();
 
-            sfile_berkas =
+            //sfile_berkas =
 
 
 
@@ -286,7 +286,7 @@ public class PortalActivity extends AppCompatActivity {
                     params.put("access_token", access_token);
                     params.put("judul", sJudul);
                     params.put("kategori", idKategori);
-                    params.put("file_berkas",stringRequest);
+                    params.put("file_berkas", "belum");
                     params.put("latitude", latitude.toString());
                     params.put("longitude", longitude.toString());
                     params.put("pengguna", pengguna);
@@ -472,7 +472,7 @@ public class PortalActivity extends AppCompatActivity {
                 ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
 
 
-                InputStream is=getResources().openRawResource(+R.drawable.easyftptest);
+                //InputStream is=getResources().openRawResource(+R.drawable.easyftptest);
 
 
                 ftp.connect(params[0],params[1],params[2]);
