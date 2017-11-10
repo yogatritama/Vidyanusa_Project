@@ -2,6 +2,7 @@ package com.example.vidyanusa.portal;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -17,6 +18,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -26,12 +29,15 @@ import com.android.volley.toolbox.Volley;
 import com.example.vidyanusa.Constant;
 import com.example.vidyanusa.PortalActivity;
 import com.example.vidyanusa.R;
+import com.example.vidyanusa.RequestHandler;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by LenovoG4080 on 15/09/2016.
@@ -51,11 +57,20 @@ public class LihatPortal extends Fragment {
     private Spinner spinnerMenu;
     private EditText edCari;
     private Button portal;
+
+    private String username;
+    private String access_token;
+    private String pengguna;
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.lihat_portal, container, false);
         pDialog = new ProgressDialog(getActivity());
         pDialog.setMessage("Loading...");
         pDialog.setCancelable(false);
+
+        SharedPreferences pref = getActivity().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        username = pref.getString("username", null);
+        access_token = pref.getString("access_token", null);
+        pengguna = pref.getString("id_pengguna", null);
 
         portal=(Button) view.findViewById(R.id.btn_portal);
         portal.setOnClickListener(new View.OnClickListener(){
@@ -104,7 +119,7 @@ public class LihatPortal extends Fragment {
 
 
 
-        final StringRequest request = new StringRequest(Request.Method.GET, Constant.LIHAT_PORTAL_URL,
+        final StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.LIHAT_PORTAL_URL,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -116,21 +131,28 @@ public class LihatPortal extends Fragment {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-
+                        Toast.makeText(getContext(),
+                                error.toString(),
+                                Toast.LENGTH_LONG).show();
                     }
-                });
-        RequestQueue requestQueue = Volley.newRequestQueue(getActivity());
-        requestQueue.add(request);
+                }
+        ){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String,String> params = new HashMap<>();
+                params.put("access_token",access_token);
+
+                return params;
+            }
+        };
+
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy( 50000, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        RequestHandler.getInstance(getContext()).addToRequestQueue(stringRequest);
     }
 
     private void iniData(String response){
         try {
             JSONObject jsonObject = new JSONObject(response);
-
-            //ini toast untuk menampilkan pesan sukses dari json
-            //Toast.makeText(this, jsonObject.getString("message"), Toast.LENGTH_SHORT).show();
-            String pesan="sukses";
-            Toast.makeText(getActivity(), pesan, Toast.LENGTH_LONG).show();
 
             // ini utk mengambil attribute array yg ada di json (yaitu attribute data)
             JSONArray jsonArray = jsonObject.getJSONArray("data");
@@ -141,11 +163,11 @@ public class LihatPortal extends Fragment {
                 JSONObject objectMakanan = jsonArray.getJSONObject(i);
 
                 //get data berdasarkan attribte yang ada dijsonnya (harus sama)
-                String namaMakanan = objectMakanan.getString("username");
-                String harga = objectMakanan.getString("harga");
-                String stok = objectMakanan.getString("stok_barang");
-                String sisa = objectMakanan.getString("sisa_barang");
-                String owner = objectMakanan.getString("owner");
+                String namaMakanan = objectMakanan.getString("judul");
+                String harga = objectMakanan.getJSONObject("pengguna").getJSONObject("profil").getString("username");
+                String stok = objectMakanan.getJSONObject("kategori").getString("nama_kategori");
+                String sisa = objectMakanan.getString("file_berkas");
+                String owner = "admin";
 
                 //add data ke modelnya
                 Portal Portal = new Portal();

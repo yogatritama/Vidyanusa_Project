@@ -8,6 +8,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.text.Html;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import android.widget.Space;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -27,12 +29,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by ManInBack on 12/2/2016.
  */
 
 public class LihatPortalActivity extends Fragment {
 
+    private String username;
     private String access_token;
     private String pengguna;
 
@@ -46,13 +52,11 @@ public class LihatPortalActivity extends Fragment {
 //        pDialog.show();
 
         final SharedPreferences pref = getActivity().getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        username = pref.getString("username", null);
         access_token = pref.getString("access_token", null);
         pengguna = pref.getString("id_pengguna", null);
 
-
-        final LinearLayout listBlog = (LinearLayout) v.findViewById(R.id.listBlog);
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, Constant.LIHAT_PORTAL_URL,
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.LIHAT_PORTAL_URL,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -64,60 +68,13 @@ public class LihatPortalActivity extends Fragment {
                                 JSONObject objData;
                                 for(int num = 0; num < arrData.length(); num++) {
                                     objData = arrData.getJSONObject(num);
-
-                                    TextView text1 = new TextView(getActivity());
-                                    text1.setLayoutParams(new LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.MATCH_PARENT,
-                                            LinearLayout.LayoutParams.WRAP_CONTENT));
-                                    text1.setText(objData.getString("title"));
-                                    text1.setTextAppearance(getContext(), R.style.TextAppearance_AppCompat_Title);
-
-                                    TextView text2 = new TextView(getActivity());
-                                    text2.setLayoutParams(new LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.MATCH_PARENT,
-                                            LinearLayout.LayoutParams.WRAP_CONTENT));
-                                    String data = Html.fromHtml(objData.getString("body")).toString();
-                                    if(data.length() > 50) {
-                                        data = data.substring(0, 49) + " . . . . ";
-                                    }
-                                    text2.setText(data);
-
-//                                    JSONObject objAuthor = objData.getJSONObject("pengguna");
-                                    JSONObject objProfil = objData.getJSONObject("profil");
-
-                                    TextView text3 = new TextView(getActivity());
-                                    text1.setLayoutParams(new LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.MATCH_PARENT,
-                                            LinearLayout.LayoutParams.WRAP_CONTENT));
-                                    text3.setText("dibuat oleh " + objProfil.getString("username"));
-
-                                    Space space = new Space(getActivity());
-                                    space.setLayoutParams(new LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.MATCH_PARENT,
-                                            getDP(15)));
-
-                                    LinearLayout layoutText = new LinearLayout(getActivity());
-                                    layoutText.setLayoutParams(new LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.MATCH_PARENT,
-                                            LinearLayout.LayoutParams.WRAP_CONTENT));
-                                    layoutText.setOrientation(LinearLayout.VERTICAL);
-                                    layoutText.setPadding(24, 16, 24, 16);
-                                    layoutText.addView(text1);
-                                    layoutText.addView(text3);
-                                    layoutText.addView(space);
-                                    layoutText.addView(text2);
-
-                                    CardView layoutCard = new CardView(getActivity());
-                                    layoutCard.setLayoutParams(new LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.MATCH_PARENT,
-                                            LinearLayout.LayoutParams.WRAP_CONTENT));
-                                    ViewGroup.MarginLayoutParams layoutParams =
-                                            (ViewGroup.MarginLayoutParams) layoutCard.getLayoutParams();
-                                    layoutParams.setMargins(getDP(16), getDP(16), getDP(16), getDP(16));
-                                    layoutCard.addView(layoutText);
-
-                                    listBlog.addView(layoutCard);
+                                    Log.d("log", objData.getString("judul"));
                                 }
+                            } else {
+                                Log.d("log", obj.toString());
+                                Toast.makeText(getActivity(),
+                                        obj.getString("message"),
+                                        Toast.LENGTH_LONG).show();
                             }
                         }
                         catch (JSONException e){
@@ -136,7 +93,15 @@ public class LihatPortalActivity extends Fragment {
                                 Toast.LENGTH_LONG).show();
                     }
                 }
-        );
+        ){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String,String> params = new HashMap<>();
+                params.put("access_token",access_token);
+
+                return params;
+            }
+        };
 
         stringRequest.setRetryPolicy(new DefaultRetryPolicy( 50000, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         RequestHandler.getInstance(getContext()).addToRequestQueue(stringRequest);
