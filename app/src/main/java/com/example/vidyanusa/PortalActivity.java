@@ -67,50 +67,50 @@ public class PortalActivity extends AppCompatActivity {
 
     private EditText judulportal;
     private Spinner spkategori;
-    private String sJudul, sKategori, sfile_berkas;
-    private Button kirim;
-    private final int SELECT_PHOTO = 1;
-    private ProgressDialog prg;
-
     private ImageView imageView;
-    private  Bitmap selectedImage;
-    private InputStream imageStream;
-    private ClipDrawable drawable;
+    private String sJudul, sKategori;
+    private Button kirim;
 
     private int request_code = 1;
     private Bitmap bitmap_foto;
     private RoundedBitmapDrawable roundedBitmapDrawable;
     private byte[] bytes;
 
+    private String username;
     private String access_token;
     private String pengguna;
 
     private List<String> listKegiatan = new ArrayList<>();
     private List<String> item = new ArrayList<>();
     private String idKategori;
+    private String photoPath;
 
-    private int GALLERY = 1, CAMERA = 2;
+    private final int GALLERY = 1, CAMERA = 2;
 
     private GPSTracker gps;
 
     private Double latitude;
     private Double longitude;
 
-    private static final String IMAGE_DIRECTORY = "/vidyanusa";
+    private ProgressDialog pDialog;
+
+    private Bitmap bitmap;
+
+    private String timeStamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_sample_actionbar);
         setContentView(R.layout.portal);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        final ProgressDialog pDialog = new ProgressDialog(this);
+        pDialog = new ProgressDialog(this);
         pDialog.setMessage("Silahkan tunggu");
         pDialog.setCancelable(false);
         pDialog.show();
 
         final SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        username = pref.getString("username", null);
         access_token = pref.getString("access_token", null);
         pengguna = pref.getString("id_pengguna", null);
 
@@ -236,49 +236,47 @@ public class PortalActivity extends AppCompatActivity {
             return;
         }
 
-
         if (gps.canGetLocation()) {
             kirim.setText("Memproses");
             kirim.setEnabled(false);
+
+            pDialog.show();
+
+            timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            photoPath = "http://filehosting.vidyanusa.id/mobile/portal/" + timeStamp + ".png";
 
             idKategori = listKegiatan.get(spkategori.getSelectedItemPosition() - 1);
 
             sJudul = judulportal.getText().toString();
             sKategori = spkategori.getSelectedView().toString();
 
-
-
-
             latitude = gps.getLatitude();
             longitude = gps.getLongitude();
 
-            //sfile_berkas =
-
-
-
-            final StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.URL_TAMBAH_KEGIATAN,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        //  progressDialos.dismiss();
-                        try {
-                            JSONObject obj = new JSONObject(response);
-                            JSONObject objData = new JSONObject(obj.getString("data"));
-                            Toast.makeText(getApplicationContext(), objData.getString("message"), Toast.LENGTH_SHORT).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.URL_TAMBAH_KEGIATAN,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            //  progressDialos.dismiss();
+                            try {
+                                JSONObject obj = new JSONObject(response);
+                                JSONObject objData = new JSONObject(obj.getString("data"));
+                                Toast.makeText(getApplicationContext(), objData.getString("message"), Toast.LENGTH_SHORT).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            pDialog.hide();
+                            kirim.setText("Kirim");
+                            kirim.setEnabled(true);
                         }
-                        kirim.setText("Kirim");
-                        kirim.setEnabled(true);
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            // progressDialog.hide();
+                            Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
+                        }
                     }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // progressDialog.hide();
-                        Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
-                    }
-                }
             ) {
                 @Override
                 protected Map<String, String> getParams() throws AuthFailureError {
@@ -286,7 +284,7 @@ public class PortalActivity extends AppCompatActivity {
                     params.put("access_token", access_token);
                     params.put("judul", sJudul);
                     params.put("kategori", idKategori);
-                    params.put("file_berkas", "belum");
+                    params.put("file_berkas", photoPath);
                     params.put("latitude", latitude.toString());
                     params.put("longitude", longitude.toString());
                     params.put("pengguna", pengguna);
@@ -296,6 +294,8 @@ public class PortalActivity extends AppCompatActivity {
 
             stringRequest.setRetryPolicy(new DefaultRetryPolicy( 50000, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             RequestHandler.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);
+
+            up();
         } else {
             // can't get location
             // GPS or Network is not enabled
@@ -334,54 +334,63 @@ public class PortalActivity extends AppCompatActivity {
     }
 
 
-    private byte[] imageToByte(ImageView image) {
-        Bitmap bitmapFoto = ((BitmapDrawable)image.getDrawable()).getBitmap();
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmapFoto.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
-        return byteArray;
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(resultCode == RESULT_OK){
+            switch(requestCode) {
+                case GALLERY: {
+                    final Uri imageUri = data.getData();
+                    try {
+                        InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                        bitmap = BitmapFactory.decodeStream(imageStream);
+                        imageView.setImageBitmap(bitmap);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                }
+                case CAMERA: {
+                    bitmap = (Bitmap) data.getExtras().get("data");
+                    imageView.setImageBitmap(bitmap);
+                    break;
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }public void up(){
+        String address="167.205.7.230",u="ftp.vidyanusa.id|vidyanusaftp",p="VvIiDdYyAa123!",directory="mobile/portal";
+        uploadTask async=new uploadTask();
+        async.execute(address,u,p,directory);
     }
 
+    class uploadTask extends AsyncTask<String, Void, String> {
 
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data){
-//        /*if(resultCode == RESULT_OK && requestCode == request_code){
-//            imageView.setImageURI(data.getData());
-//            bytes = imageToByte(imageView);
-//
-//            // para que se vea la imagen en circulo
-//            Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
-//            roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(getResources(), bitmap);
-//            roundedBitmapDrawable.setCircular(true);
-//            imageView.setImageDrawable(roundedBitmapDrawable);
-//        }
-//        super.onActivityResult(requestCode, resultCode, data);*/
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (resultCode == this.RESULT_CANCELED) {
-//            return;
-//        }
-//        if (requestCode == GALLERY) {
-//            if (data != null) {
-//                Uri contentURI = data.getData();
-//                try {
-//                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
-//                    String path = saveImage(bitmap);
-//                    Toast.makeText(PortalActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-//                    imageView.setImageBitmap(bitmap);
-//
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                    Toast.makeText(PortalActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//        } else if (requestCode == CAMERA) {
-//            Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-//            imageView.setImageBitmap(thumbnail);
-//            saveImage(thumbnail);
-//            Toast.makeText(PortalActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-//        }
-//    }
+        @Override
+        protected void onPreExecute(){
+            super.onPreExecute();
+        }
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                com.adeel.library.easyFTP ftp = new com.adeel.library.easyFTP();
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+                byte[] bitmapdata = bos.toByteArray();
+                ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+                ftp.connect(params[0],params[1],params[2]);
+                boolean status=false;
+                if (!params[3].isEmpty()){
+                    status=ftp.setWorkingDirectory(params[3]);
+                }
+                ftp.uploadFile(bs,timeStamp +".png");
+                ftp.disconnect();
+                return new String("http://filehosting.vidyanusa.id/tes_upload_dari_android/" + timeStamp + ".png");
+            }catch (Exception e){
+                String t="Failure : " + e.getLocalizedMessage();
+                return t;
+            }
+        }
+    }
 
     private void showPictureDialog(){
         AlertDialog.Builder pictureDialog = new AlertDialog.Builder(this);
@@ -407,97 +416,14 @@ public class PortalActivity extends AppCompatActivity {
     }
 
     public void choosePhotoFromGallary() {
-//        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-//                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//        startActivityForResult(galleryIntent, GALLERY);
-
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        photoPickerIntent.setType("image/*");
-        startActivityForResult(photoPickerIntent, SELECT_PHOTO);
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent, GALLERY);
     }
 
     private void takePhotoFromCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(intent, CAMERA);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
-        super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
-
-        switch(requestCode) {
-            case SELECT_PHOTO:
-                if (resultCode == RESULT_OK) {
-                    try {
-                        final Uri imageUri = imageReturnedIntent.getData();
-                        imageStream = getContentResolver().openInputStream(imageUri);
-                        selectedImage = BitmapFactory.decodeStream(imageStream);
-                        imageView.setImageBitmap(selectedImage);
-                        //drawable = (ClipDrawable) imageView.getDrawable();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-        }
-    }
-
-    public  void up(View v){
-        String address="167.205.7.230",u="ftp.vidyanusa.id|vidyanusaftp",p="VvIiDdYyAa123!",directory="tes_upload_dari_android";
-        //String address="167.205.7.230",u="vidyanusa_projects",p="123456!a",directory="BackEnd";
-        uploadTask async=new uploadTask();
-        async.execute(address,u,p,directory);//Passing arguments to AsyncThread
-    }
-
-    class uploadTask extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected void onPreExecute(){
-            super.onPreExecute();
-            prg = new ProgressDialog(PortalActivity.this);
-            prg.setMessage("Uploading...");
-            prg.show();
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            try {
-                easyFTP ftp = new easyFTP();
-
-                //Convert Bitmap to Input Stream
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                selectedImage.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
-                byte[] bitmapdata = bos.toByteArray();
-                ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-
-
-                //InputStream is=getResources().openRawResource(+R.drawable.easyftptest);
-
-
-                ftp.connect(params[0],params[1],params[2]);
-                boolean status=false;
-                if (!params[3].isEmpty()){
-                    status=ftp.setWorkingDirectory(params[3]);
-                }
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                ftp.uploadFile(bs,timeStamp +".png");
-
-
-                return new String("Upload Successful");
-            }catch (Exception e){
-                String t="Failure : " + e.getLocalizedMessage();
-                return t;
-            }
-        }
-
-
-
-        @Override
-        protected void onPostExecute(String str) {
-            prg.dismiss();
-            Toast.makeText(PortalActivity.this,str, Toast.LENGTH_LONG).show();
-        }
     }
 
 

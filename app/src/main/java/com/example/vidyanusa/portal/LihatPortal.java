@@ -66,6 +66,7 @@ public class LihatPortal extends Fragment {
         pDialog = new ProgressDialog(getActivity());
         pDialog.setMessage("Loading...");
         pDialog.setCancelable(false);
+        pDialog.show();
 
         SharedPreferences pref = getActivity().getSharedPreferences("MyPref", 0); // 0 - for private mode
         username = pref.getString("username", null);
@@ -123,7 +124,7 @@ public class LihatPortal extends Fragment {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        pDialog.dismiss();
+                        pDialog.hide();
                         iniData(response);
                     }
                 },

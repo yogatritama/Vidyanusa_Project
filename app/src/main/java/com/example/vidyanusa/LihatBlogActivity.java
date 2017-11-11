@@ -1,5 +1,6 @@
 package com.example.vidyanusa;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -39,6 +40,11 @@ public class LihatBlogActivity extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v =inflater.inflate(R.layout.lihat_blog_2,container,false);
 
+        final ProgressDialog pDialog = new ProgressDialog(getActivity());
+        pDialog.setMessage("Loading...");
+        pDialog.setCancelable(false);
+        pDialog.show();
+
         tulis_blog=(Button) v.findViewById(R.id.btn_blog);
 
         tulis_blog.setOnClickListener(new View.OnClickListener(){
@@ -62,6 +68,7 @@ public class LihatBlogActivity extends Fragment {
                             if(obj.getBoolean("success")){
                                 JSONArray arrData = new JSONArray(obj.getString("data"));
                                 JSONObject objData;
+                                pDialog.hide();
                                 for(int num = 0; num < arrData.length(); num++) {
                                     objData = arrData.getJSONObject(num);
 
@@ -131,6 +138,7 @@ public class LihatBlogActivity extends Fragment {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        pDialog.hide();
                         Toast.makeText(getContext(),
                                 error.toString(),
                                 Toast.LENGTH_LONG).show();
